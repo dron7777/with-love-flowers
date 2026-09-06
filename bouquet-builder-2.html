@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build a Bouquet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #F6F1E7;
+    --panel: #FFFDF9;
+    --ink: #2B2A25;
+    --ink-soft: #7A7365;
+    --line: #E5DCC9;
+    --sage: #4F6B4B;
+    --sage-light: #86A279;
+    --rose: #E9AEBB;
+    --rose-deep: #C56E82;
+    --sunflower: #F0AE1F;
+    --sunflower-dark: #6E4420;
+    --orchid: #B18BCB;
+    --orchid-deep: #79498F;
+    --kraft: #C79A5E;
+    --kraft-dark: #A97C42;
+    --cream-petal: #FBF6EA;
+    --tulip: #E2694B;
+    --tulip-deep: #B94A32;
+    --peony: #F3C6D3;
+    --peony-deep: #E091A6;
+    --carnation: #E58FC0;
+    --carnation-deep: #C263A0;
+    --eucalyptus: #4F7A78;
+    --eucalyptus-dark: #33504E;
+    --ribbon: #7B3F98;
+    --ribbon-dark: #5A2E73;
+    --ribbon-light: #C79FDB;
+    --paper-blush: #F4D9E1;
+    --paper-blush-dark: #E7B9C8;
+    --paper-lilac: #DAD0E3;
+    --paper-lilac-dark: #B7A5C7;
+  }
+
+  * { box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Work Sans', sans-serif;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before{
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: repeating-linear-gradient(45deg, rgba(43,42,37,0.012) 0px, rgba(43,42,37,0.012) 1px, transparent 1px, transparent 7px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .bg-blob{ position: fixed; border-radius: 50%; filter: blur(70px); pointer-events: none; z-index: 0; }
+  .bg-blob.b1{ width: 440px; height: 440px; background: var(--rose); opacity: 0.28; top: -140px; left: -120px; }
+  .bg-blob.b2{ width: 400px; height: 400px; background: var(--sage-light); opacity: 0.22; bottom: -160px; right: -100px; }
+  .bg-blob.b3{ width: 320px; height: 320px; background: var(--sunflower); opacity: 0.14; top: 46%; right: -140px; }
+  .bg-blob.b4{ width: 260px; height: 260px; background: var(--orchid); opacity: 0.14; bottom: 10%; left: -100px; }
+
+  .shell{ max-width: 1080px; margin: 0 auto; padding: 48px 28px 64px; position: relative; z-index: 1; }
+
+  header{ margin-bottom: 36px; max-width: 560px; position: relative; }
+
+  .branch-deco{ position: absolute; top: -20px; right: -60px; width: 220px; height: 140px; opacity: 0.5; pointer-events: none; }
+
+  h1{
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(2.1rem, 4.2vw, 3rem);
+    line-height: 1.05;
+    margin: 0 0 12px;
+    color: var(--ink);
+  }
+
+  header p{ margin: 0; color: var(--ink-soft); font-size: 1.02rem; line-height: 1.5; }
+
+  .layout{ display: grid; grid-template-columns: 1.5fr 340px; gap: 28px; align-items: start; }
+  @media (max-width: 780px){ .layout{ grid-template-columns: 1fr; } }
+
+  .canvas-card{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 8px;
+    position: relative;
+    box-shadow: 0 18px 40px -22px rgba(43,42,37,0.25);
+    overflow: hidden;
+  }
+
+  .status-pill{
+    position: absolute; top: 18px; left: 18px;
+    font-size: 0.76rem; padding: 5px 12px; border-radius: 999px;
+    background: var(--bg); border: 1px solid var(--line); color: var(--ink-soft); z-index: 2;
+  }
+  .status-pill.wrapped{ color: var(--sage); border-color: var(--sage-light); }
+
+  #bouquet-svg{ width: 100%; height: auto; display: block; }
+
+  .wrap-pop{
+    animation: wrapPop 0.72s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-origin: 300px 440px;
+  }
+  @keyframes wrapPop{
+    0%{ opacity: 0; transform: scale(0.2) translateY(24px) rotate(-4deg); }
+    50%{ opacity: 1; transform: scale(1.2) translateY(-10px) rotate(2deg); }
+    72%{ opacity: 1; transform: scale(0.93) translateY(2px) rotate(-1deg); }
+    100%{ opacity: 1; transform: scale(1) translateY(0) rotate(0deg); }
+  }
+
+  .pop-ring{
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: popRing 0.65s ease-out forwards;
+  }
+  @keyframes popRing{
+    from{ transform: scale(0.3); opacity: 0.7; }
+    to{ transform: scale(3.4); opacity: 0; }
+  }
+
+  .settle-pop{
+    animation: settlePop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-origin: 300px 300px;
+  }
+  @keyframes settlePop{
+    0%{ transform: scale(0.94); }
+    55%{ transform: scale(1.03); }
+    100%{ transform: scale(1); }
+  }
+
+  .burst-particle{
+    animation: burstOut 0.75s ease-out forwards;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  @keyframes burstOut{
+    0%{ transform: translate(0,0) scale(0.3); opacity: 1; }
+    100%{ transform: translate(var(--tx), var(--ty)) scale(1); opacity: 0; }
+  }
+
+  .empty-note{
+    position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%);
+    text-align: center; color: var(--ink-soft); font-size: 0.95rem; pointer-events: none; max-width: 220px;
+  }
+
+  .flower-g{ cursor: pointer; }
+  .flower-g:hover{ filter: brightness(1.06); }
+
+  .panel{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 20px;
+    box-shadow: 0 18px 40px -22px rgba(43,42,37,0.2);
+  }
+
+  .panel-label{ font-size: 0.78rem; color: var(--ink-soft); margin: 0 0 14px; line-height: 1.4; }
+
+  .flower-btn{
+    display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 10px;
+    border: 1px solid var(--line); background: #fff; border-radius: 5px; margin-bottom: 10px;
+    cursor: pointer; text-align: left; transition: border-color 0.15s ease, transform 0.08s ease;
+    font-family: 'Work Sans', sans-serif;
+  }
+  .flower-btn:hover{ border-color: var(--sage-light); }
+  .flower-btn:active{ transform: scale(0.98); }
+  .flower-btn svg{ width: 42px; height: 42px; flex-shrink: 0; }
+  .flower-btn .fname{ font-size: 0.98rem; font-weight: 500; color: var(--ink); display: block; }
+  .flower-btn .fcount{ font-size: 0.8rem; color: var(--ink-soft); }
+  .flower-btn .plus{ margin-left: auto; font-size: 1.3rem; color: var(--sage); font-weight: 400; }
+
+  .random-row{ display: flex; gap: 8px; margin-bottom: 4px; }
+  .random-btn{
+    flex: 1; padding: 10px 8px; border-radius: 5px; border: 1px dashed var(--line);
+    background: transparent; font-family: 'Work Sans', sans-serif; font-size: 0.84rem; font-weight: 500;
+    color: var(--ink); cursor: pointer; transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .random-btn:hover{ border-color: var(--sage-light); background: var(--bg); }
+  .random-btn.wild{ color: var(--orchid-deep); }
+
+  .divider{ border: none; border-top: 1px solid var(--line); margin: 16px 0; }
+
+  .totals{ display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; color: var(--ink-soft); margin-bottom: 14px; }
+  #stem-count{ color: var(--ink); font-weight: 600; }
+
+  .clear-btn{
+    background: none; border: none; color: var(--rose-deep); font-size: 0.88rem; cursor: pointer;
+    padding: 4px 0; font-family: 'Work Sans', sans-serif; text-decoration: underline; text-underline-offset: 3px;
+  }
+  .clear-btn:disabled{ color: var(--ink-soft); opacity: 0.5; cursor: default; text-decoration: none; }
+
+  .wrap-btn{
+    width: 100%; padding: 13px 10px; border-radius: 5px; border: none; background: var(--sage);
+    color: #fff; font-family: 'Work Sans', sans-serif; font-size: 0.98rem; font-weight: 600;
+    cursor: pointer; transition: background 0.15s ease, transform 0.08s ease;
+  }
+  .wrap-btn:hover:not(:disabled){ background: #405A3D; }
+  .wrap-btn:active:not(:disabled){ transform: scale(0.98); }
+  .wrap-btn:disabled{ background: var(--line); color: var(--ink-soft); cursor: default; }
+  .wrap-btn.is-wrapped{ background: var(--kraft-dark); }
+
+  .remove-hint{ font-size: 0.78rem; color: var(--ink-soft); margin-top: 14px; line-height: 1.4; }
+
+  /* ---------- reveal popup ---------- */
+  .reveal-backdrop{
+    position: fixed; inset: 0; z-index: 50;
+    background: radial-gradient(circle at 50% 38%, rgba(53,50,42,0.6), rgba(18,17,14,0.82));
+    backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+  .reveal-backdrop.open{ opacity: 1; pointer-events: auto; }
+
+  .reveal-card{
+    background: var(--panel);
+    border-radius: 10px;
+    max-width: 440px; width: 100%;
+    max-height: 92vh; overflow-y: auto;
+    padding: 18px 22px 24px;
+    box-shadow: 0 44px 90px -24px rgba(0,0,0,0.55);
+    position: relative;
+    transform: scale(0.85) translateY(18px);
+    opacity: 0;
+  }
+  .reveal-backdrop.open .reveal-card{
+    animation: revealCardIn 0.6s cubic-bezier(0.22, 0.9, 0.3, 1.18) forwards;
+  }
+  @keyframes revealCardIn{
+    0%{ transform: scale(0.8) translateY(28px); opacity: 0; }
+    58%{ transform: scale(1.035) translateY(-4px); opacity: 1; }
+    100%{ transform: scale(1) translateY(0); opacity: 1; }
+  }
+
+  .reveal-close{
+    position: absolute; top: 12px; right: 12px; z-index: 3;
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--panel);
+    color: var(--ink-soft); font-size: 1.15rem; line-height: 1;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .reveal-close:hover{ color: var(--ink); border-color: var(--sage-light); }
+
+  .reveal-stage{
+    position: relative; overflow: hidden; border-radius: 8px;
+    background: radial-gradient(ellipse at 50% 28%, #FFFDF9 0%, #F1E9D8 66%, #E4D7BB 100%);
+  }
+  #reveal-svg{ width: 100%; height: auto; display: block; position: relative; z-index: 1; }
+
+  .confetti-layer{ position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 2; }
+  .confetti-piece{
+    position: absolute; top: -8%;
+    border-radius: 60% 40% 55% 45% / 55% 45% 60% 40%;
+    animation-name: confettiFall;
+    animation-timing-function: cubic-bezier(0.4,0.1,0.6,1);
+    animation-fill-mode: forwards;
+  }
+  @keyframes confettiFall{
+    0%{ transform: translate(0,0) rotate(0deg); opacity: 0; }
+    8%{ opacity: 0.95; }
+    100%{ transform: translate(var(--drift, 0px), 640%) rotate(var(--spin, 220deg)); opacity: 0; }
+  }
+
+  .reveal-caption{ text-align: center; padding: 18px 4px 2px; }
+  .reveal-caption h2{
+    font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.5rem;
+    margin: 0 0 6px; color: var(--ink);
+  }
+  .reveal-caption p{ margin: 0; color: var(--ink-soft); font-size: 0.92rem; line-height: 1.45; }
+
+  .reveal-actions{ display: flex; gap: 10px; margin-top: 18px; }
+  .reveal-btn{
+    flex: 1; padding: 11px 10px; border-radius: 5px; font-family: 'Work Sans', sans-serif;
+    font-size: 0.92rem; font-weight: 600; cursor: pointer;
+    transition: background 0.15s ease, transform 0.08s ease, border-color 0.15s ease;
+  }
+  .reveal-btn:active{ transform: scale(0.98); }
+  .reveal-btn.ghost{ background: transparent; border: 1px solid var(--line); color: var(--ink); }
+  .reveal-btn.ghost:hover{ border-color: var(--sage-light); }
+  .reveal-btn.solid{ background: var(--sage); border: none; color: #fff; }
+  .reveal-btn.solid:hover{ background: #405A3D; }
+
+  @media (prefers-reduced-motion: reduce){
+    .reveal-backdrop, .reveal-backdrop.open .reveal-card, .confetti-piece{ animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-blob b1"></div>
+<div class="bg-blob b2"></div>
+<div class="bg-blob b3"></div>
+<div class="bg-blob b4"></div>
+
+<div class="shell">
+  <header>
+    <svg class="branch-deco" viewBox="0 0 220 140" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10,120 C60,90 90,70 130,20" fill="none" stroke="#4F6B4B" stroke-width="1.5"/>
+      <ellipse cx="55" cy="95" rx="10" ry="4" fill="#86A279" transform="rotate(-30 55 95)"/>
+      <ellipse cx="90" cy="65" rx="10" ry="4" fill="#86A279" transform="rotate(-40 90 65)"/>
+      <ellipse cx="118" cy="35" rx="9" ry="3.6" fill="#86A279" transform="rotate(-55 118 35)"/>
+      <circle cx="132" cy="18" r="5" fill="#E9AEBB"/>
+    </svg>
+    <h1>Build a bouquet</h1>
+    <p>Choose lilies, sunflowers, orchids and roses to hand-tie your own arrangement, or let the garden surprise you with any of thirty varieties. Tap a bloom to add it, tap one in the bouquet to take it back out, then wrap it up.</p>
+  </header>
+
+  <div class="layout">
+    <div class="canvas-card">
+      <span class="status-pill" id="status-pill">Loose</span>
+      <svg id="bouquet-svg" viewBox="0 0 600 560" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="empty-note" id="empty-note">Your bouquet is empty.<br>Tap a flower to begin.</div>
+    </div>
+
+    <div class="panel">
+      <p class="panel-label">Flowers</p>
+      <div id="flower-list"></div>
+
+      <div class="random-row">
+        <button class="random-btn" id="random-known-btn">Add a random flower</button>
+        <button class="random-btn wild" id="random-wild-btn">Surprise me</button>
+      </div>
+
+      <hr class="divider">
+
+      <div class="totals">
+        <span><span id="stem-count">0</span> stems</span>
+        <button class="clear-btn" id="clear-btn" disabled>Clear bouquet</button>
+      </div>
+
+      <button class="wrap-btn" id="wrap-btn" disabled>Wrap it</button>
+
+      <p class="remove-hint">The arrangement re-settles a little each time you add a stem, the way a hand-tied bouquet does. Adding or removing a bloom loosens the wrap again.</p>
+    </div>
+  </div>
+</div>
+
+<div class="reveal-backdrop" id="reveal-backdrop">
+  <div class="reveal-card">
+    <button class="reveal-close" id="reveal-close" aria-label="Close">×</button>
+    <div class="reveal-stage">
+      <svg id="reveal-svg" viewBox="0 0 640 680" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="confetti-layer" id="confetti-layer"></div>
+    </div>
+    <div class="reveal-caption">
+      <h2>Wrapped and ready</h2>
+      <p id="reveal-sub"></p>
+    </div>
+    <div class="reveal-actions">
+      <button class="reveal-btn ghost" id="reveal-another">Start a new bouquet</button>
+      <button class="reveal-btn solid" id="reveal-done">Keep it</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- deterministic PRNG ----------
+function mulberry32(a){
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+// ---------- petal path helper ----------
+function petalPath(r0, len, width){
+  const hw = width/2;
+  const tip = -(r0+len);
+  const m1 = -(r0+len*0.35);
+  const m2 = -(r0+len*0.75);
+  return `M0,${-r0} C ${-hw},${m1} ${-hw},${m2} 0,${tip} C ${hw},${m2} ${hw},${m1} 0,${-r0} Z`;
+}
+
+// ---------- generic templates ----------
+function radialFlower(seed, rings, centerColor, centerR, textureColor){
+  const rand = mulberry32(seed);
+  let s = '';
+  let rotBase = rand()*20;
+  rings.forEach(ring => {
+    for(let i=0;i<ring.n;i++){
+      const ang = rotBase + i*(360/ring.n);
+      const col = Array.isArray(ring.color) ? ring.color[i % ring.color.length] : ring.color;
+      s += `<path d="${petalPath(ring.r0, ring.len, ring.width)}" transform="rotate(${ang.toFixed(1)})" fill="${col}" ${ring.stroke ? `stroke="${ring.stroke}" stroke-width="0.4"` : ''} opacity="${ring.opacity || 0.95}"/>`;
+    }
+    rotBase += (360/ring.n)/2 + rand()*6;
+  });
+  if(centerColor) s += `<circle r="${centerR}" fill="${centerColor}"/>`;
+  if(textureColor){
+    for(let i=0;i<14;i++){
+      const a = i*25.7*(Math.PI/180) + rand();
+      const rr = (centerR||3)*0.5*rand();
+      const dx = Math.cos(a)*rr, dy = Math.sin(a)*rr;
+      s += `<circle cx="${dx.toFixed(1)}" cy="${dy.toFixed(1)}" r="0.6" fill="${textureColor}" opacity="0.5"/>`;
+    }
+  }
+  return s;
+}
+
+function clusterFlower(seed, color, floretCount, r, floretSize, shape){
+  const rand = mulberry32(seed);
+  let s = '';
+  const ga = 137.5*Math.PI/180;
+  for(let i=0;i<floretCount;i++){
+    const t = (i+0.5)/floretCount;
+    const rr = r*Math.sqrt(t);
+    const th = i*ga;
+    const x = rr*Math.cos(th), y = rr*Math.sin(th)*0.9;
+    if(shape === 'bell'){
+      s += `<path d="M ${(x-3).toFixed(1)},${y.toFixed(1)} Q ${(x-4).toFixed(1)},${(y+6).toFixed(1)} ${x.toFixed(1)},${(y+8).toFixed(1)} Q ${(x+4).toFixed(1)},${(y+6).toFixed(1)} ${(x+3).toFixed(1)},${y.toFixed(1)} Z" fill="${color}" opacity="0.9"/>`;
+    } else {
+      s += `<g transform="translate(${x.toFixed(1)},${y.toFixed(1)})">`;
+      for(let p=0;p<4;p++){
+        s += `<path d="${petalPath(0,floretSize,floretSize*0.7)}" transform="rotate(${(p*90+rand()*20).toFixed(1)})" fill="${color}"/>`;
+      }
+      s += `<circle r="0.8" fill="#F0AE1F"/></g>`;
+    }
+  }
+  return s;
+}
+
+function trumpetDaffodil(seed){
+  const rand = mulberry32(seed);
+  let s = '';
+  const rot = rand()*60;
+  for(let i=0;i<6;i++){
+    const ang = rot + i*60;
+    s += `<path d="${petalPath(6,18,11)}" transform="rotate(${ang.toFixed(1)})" fill="#FDE9A8" stroke="#E8C15A" stroke-width="0.4"/>`;
+  }
+  s += `<ellipse rx="8" ry="10" fill="#F7C948"/>`;
+  s += `<ellipse rx="6" ry="7.5" fill="#D98E1B"/>`;
+  s += `<ellipse rx="6" ry="7.5" fill="none" stroke="#B9700F" stroke-width="0.6"/>`;
+  return s;
+}
+
+function trumpetMorningGlory(seed){
+  const rand = mulberry32(seed);
+  let s = '';
+  const rot = rand()*72;
+  s += `<circle r="16" fill="#7C6FD1"/>`;
+  for(let i=0;i<5;i++){
+    const ang = rot + i*72;
+    s += `<path d="${petalPath(0,16,24)}" transform="rotate(${ang.toFixed(1)})" fill="#8F82E0" opacity="0.9"/>`;
+  }
+  for(let i=0;i<5;i++){
+    const ang = rot + 36 + i*72;
+    const rad = ang*Math.PI/180;
+    const x2 = Math.sin(rad)*15, y2 = -Math.cos(rad)*15;
+    s += `<line x1="0" y1="0" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#FBF7EC" stroke-width="0.8" opacity="0.7"/>`;
+  }
+  s += `<circle r="4" fill="#FBF7EC"/>`;
+  return s;
+}
+
+// ---------- hand-built core flowers ----------
+function roseMarkup(seed){
+  const rand = mulberry32(seed);
+  let s = '';
+  const isPurple = rand() < 0.55;
+  const base = isPurple ? 'var(--orchid)' : 'var(--rose)';
+  const deep = isPurple ? 'var(--orchid-deep)' : 'var(--rose-deep)';
+  const pale = isPurple ? '#F1E6F8' : '#FBEEF1';
+
+  const rings = [
+    { n:7, r0:9, len:23, w:17, jitter:6 },
+    { n:6, r0:5, len:19, w:14, jitter:8 },
+    { n:5, r0:2, len:14, w:11, jitter:10 },
+    { n:4, r0:0, len:9,  w:8,  jitter:12 }
+  ];
+  let rotBase = rand()*30;
+  rings.forEach((ring, ri) => {
+    for(let i=0;i<ring.n;i++){
+      const jitterAng = (rand()-0.5)*ring.jitter;
+      const ang = rotBase + i*(360/ring.n) + jitterAng;
+      const scaleJ = 0.92 + rand()*0.16;
+      const fill = ri === rings.length-1 ? deep : base;
+      s += `<path d="${petalPath(ring.r0, ring.len*scaleJ, ring.w*scaleJ)}" transform="rotate(${ang.toFixed(1)})" fill="${fill}" stroke="${deep}" stroke-width="0.4" opacity="0.97"/>`;
+      s += `<path d="${petalPath(ring.r0+ring.len*0.35*scaleJ, ring.len*0.55*scaleJ, ring.w*0.6*scaleJ)}" transform="rotate(${ang.toFixed(1)})" fill="${deep}" opacity="0.22"/>`;
+    }
+    rotBase += (360/ring.n)/2 + rand()*8;
+  });
+  s += `<ellipse cx="-3" cy="4" rx="4" ry="6" fill="${pale}" opacity="0.5" transform="rotate(${(rotBase*0.3).toFixed(1)})"/>`;
+  s += `<circle r="3.6" fill="${deep}"/>`;
+  return s;
+}
+
+function sunflowerMarkup(seed){
+  const rand = mulberry32(seed);
+  let s = '';
+  const rot = rand()*27;
+  for(let i=0;i<13;i++){
+    const ang = rot + i*(360/13);
+    s += `<path d="${petalPath(9,24,9)}" transform="rotate(${ang.toFixed(1)})" fill="var(--sunflower)"/>`;
+  }
+  s += `<circle r="11" fill="var(--sunflower-dark)"/>`;
+  for(let i=0;i<22;i++){
+    const a = (i*16.5)*(Math.PI/180) + rand();
+    const rr = 2 + (i%6)*1.4;
+    const dx = Math.cos(a)*rr, dy = Math.sin(a)*rr;
+    s += `<circle cx="${dx.toFixed(1)}" cy="${dy.toFixed(1)}" r="0.9" fill="#4A2C13" opacity="0.55"/>`;
+  }
+  return s;
+}
+
+function orchidMarkup(seed){
+  const rand = mulberry32(seed);
+  let s = '';
+  const rot = rand()*72;
+  for(let i=0;i<5;i++){
+    const ang = rot + i*72;
+    const isSepal = i%2===0;
+    s += `<path d="${petalPath(4, isSepal?20:16, isSepal?11:9)}" transform="rotate(${ang.toFixed(1)})" fill="${isSepal ? 'var(--orchid)' : 'var(--orchid-deep)'}" opacity="0.95"/>`;
+  }
+  s += `<g transform="rotate(180)"><path d="${petalPath(3,15,17)}" fill="#F7EBFB" stroke="var(--orchid-deep)" stroke-width="0.6"/></g>`;
+  s += `<ellipse cx="0" cy="7" rx="3" ry="2" fill="var(--orchid-deep)" opacity="0.7"/>`;
+  s += `<circle r="2.4" fill="var(--sunflower)"/>`;
+  return s;
+}
+
+function lilyMarkup(seed){
+  const rand = mulberry32(seed);
+  let s = '';
+  const rot = rand()*60;
+  for(let i=0;i<6;i++){
+    const ang = rot + i*60;
+    s += `<path d="${petalPath(3,26,10)}" transform="rotate(${ang.toFixed(1)})" fill="var(--cream-petal)" stroke="#E7D9BD" stroke-width="0.5"/>`;
+    s += `<g transform="rotate(${ang.toFixed(1)})">`;
+    for(let f=0; f<3; f++){
+      const fy = -(11+f*5+rand()*2);
+      const fx = (rand()-0.5)*4;
+      s += `<circle cx="${fx.toFixed(1)}" cy="${fy.toFixed(1)}" r="0.6" fill="#C8804A" opacity="0.55"/>`;
+    }
+    s += '</g>';
+  }
+  for(let i=0;i<6;i++){
+    const ang = i*60+30;
+    const rad = ang*Math.PI/180;
+    const x2 = Math.sin(rad)*16, y2 = -Math.cos(rad)*16;
+    s += `<line x1="0" y1="0" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#C8804A" stroke-width="0.8"/>`;
+    s += `<ellipse cx="${x2.toFixed(1)}" cy="${y2.toFixed(1)}" rx="1.6" ry="0.9" fill="#8B4A22" transform="rotate(${ang} ${x2.toFixed(1)} ${y2.toFixed(1)})"/>`;
+  }
+  s += `<circle r="2" fill="#E7D9BD"/>`;
+  return s;
+}
+
+function tulipMarkup(seed){
+  const rand = mulberry32(seed);
+  let s = '';
+  const rot = rand()*60;
+  for(let i=0;i<3;i++){
+    const ang = rot + i*120;
+    s += `<path d="${petalPath(5,22,17)}" transform="rotate(${ang.toFixed(1)})" fill="var(--tulip)" stroke="var(--tulip-deep)" stroke-width="0.5"/>`;
+  }
+  for(let i=0;i<3;i++){
+    const ang = rot + 60 + i*120;
+    s += `<path d="${petalPath(4,18,13)}" transform="rotate(${ang.toFixed(1)})" fill="var(--tulip-deep)" opacity="0.9"/>`;
+  }
+  s += `<circle r="3" fill="#7A2E1C"/>`;
+  return s;
+}
+
+function daisyMarkup(seed){
+  const rand = mulberry32(seed);
+  let s = '';
+  const rot = rand()*22;
+  for(let i=0;i<16;i++){
+    const ang = rot + i*(360/16);
+    s += `<path d="${petalPath(6,24,5)}" transform="rotate(${ang.toFixed(1)})" fill="#FFFDF9" stroke="#E9E2D2" stroke-width="0.4"/>`;
+  }
+  s += `<circle r="9" fill="var(--sunflower)"/>`;
+  for(let i=0;i<16;i++){
+    const a = (i*22.5)*(Math.PI/180) + rand();
+    const rr = 1.5 + (i%4)*1.2;
+    const dx = Math.cos(a)*rr, dy = Math.sin(a)*rr;
+    s += `<circle cx="${dx.toFixed(1)}" cy="${dy.toFixed(1)}" r="0.7" fill="#8B5E1C" opacity="0.5"/>`;
+  }
+  return s;
+}
+
+function peonyMarkup(seed){
+  const rand = mulberry32(seed);
+  let s = '';
+  const rings = [ {n:10, r0:9, len:20, w:16}, {n:8, r0:4, len:16, w:13}, {n:6, r0:1, len:11, w:9} ];
+  let rotBase = rand()*20;
+  rings.forEach((ring, idx) => {
+    for(let i=0;i<ring.n;i++){
+      const ang = rotBase + i*(360/ring.n);
+      const fill = idx === rings.length-1 ? 'var(--peony-deep)' : 'var(--peony)';
+      s += `<path d="${petalPath(ring.r0, ring.len, ring.w)}" transform="rotate(${ang.toFixed(1)})" fill="${fill}" stroke="var(--peony-deep)" stroke-width="0.3" opacity="0.95"/>`;
+    }
+    rotBase += (360/ring.n)/2 + rand()*6;
+  });
+  for(let i=0;i<10;i++){
+    const a = i*36*(Math.PI/180)+rand();
+    const dx = Math.cos(a)*3, dy = Math.sin(a)*3;
+    s += `<circle cx="${dx.toFixed(1)}" cy="${dy.toFixed(1)}" r="0.8" fill="var(--sunflower)" opacity="0.8"/>`;
+  }
+  return s;
+}
+
+function carnationMarkup(seed){
+  const rand = mulberry32(seed);
+  let s = '';
+  for(let i=0;i<20;i++){
+    const ang = i*18 + rand()*10;
+    const r0 = 1 + rand()*7;
+    const fill = i%2===0 ? 'var(--carnation)' : '#FBF0F7';
+    s += `<path d="${petalPath(r0,13,7)}" transform="rotate(${ang.toFixed(1)})" fill="${fill}" stroke="var(--carnation-deep)" stroke-width="0.3" opacity="0.92"/>`;
+  }
+  s += `<circle r="3" fill="var(--carnation-deep)" opacity="0.7"/>`;
+  return s;
+}
+
+// ---------- full species catalogue (30) ----------
+const MARKUP = {
+  rose: roseMarkup,
+  sunflower: sunflowerMarkup,
+  orchid: orchidMarkup,
+  lily: lilyMarkup,
+  tulip: tulipMarkup,
+  daisy: daisyMarkup,
+  peony: peonyMarkup,
+  carnation: carnationMarkup,
+  marigold: seed => radialFlower(seed, [
+      {n:14, r0:5, len:16, width:7, color:'#F2941C'},
+      {n:10, r0:2, len:10, width:6, color:'#F7B733'}
+    ], '#8B4A12', 3, '#5c2f0a'),
+  jasmine: seed => radialFlower(seed, [
+      {n:8, r0:4, len:14, width:6, color:'#FFFDF9', stroke:'#EDE6D6'}
+    ], '#F0AE1F', 2),
+  lotus: seed => radialFlower(seed, [
+      {n:8, r0:6, len:30, width:14, color:'#F6C9D6'},
+      {n:6, r0:3, len:22, width:11, color:'#F0A8BE'}
+    ], '#F0AE1F', 6, '#8B5E1C'),
+  hibiscus: seed => radialFlower(seed, [
+      {n:5, r0:4, len:26, width:20, color:'#E23B4E'}
+    ], '#7A1B26', 4),
+  lavender: seed => clusterFlower(seed, '#8672B0', 20, 16, 4, 'cross'),
+  daffodil: trumpetDaffodil,
+  chrysanthemum: seed => radialFlower(seed, [
+      {n:24, r0:3, len:20, width:4, color:'#F5E6C8'},
+      {n:18, r0:1, len:14, width:3.5, color:'#F0D9A8'}
+    ], '#C9A15A', 3),
+  dahlia: seed => radialFlower(seed, [
+      {n:12, r0:6, len:20, width:9, color:'#D6436E'},
+      {n:10, r0:3, len:15, width:7, color:'#B52C56'},
+      {n:6, r0:1, len:9, width:5, color:'#8C1F42'}
+    ], '#5c1230', 2),
+  petunia: seed => radialFlower(seed, [
+      {n:5, r0:2, len:20, width:20, color:'#9B5DE5'}
+    ], '#5A2A99', 3),
+  aster: seed => radialFlower(seed, [
+      {n:20, r0:5, len:18, width:4, color:'#8E7CC3'}
+    ], '#F0AE1F', 6, '#7A5E12'),
+  poppy: seed => radialFlower(seed, [
+      {n:4, r0:5, len:24, width:22, color:'#E2434B'}
+    ], '#231F1F', 5),
+  hydrangea: seed => clusterFlower(seed, '#8FB6E0', 26, 18, 4, 'cross'),
+  magnolia: seed => radialFlower(seed, [
+      {n:7, r0:4, len:28, width:15, color:'#FBF3EA', stroke:'#E9C9C9'}
+    ], '#C9A15A', 3),
+  pansy: seed => radialFlower(seed, [
+      {n:5, r0:3, len:16, width:15, color:['#6A3FA0','#6A3FA0','#8B5FC7','#8B5FC7','#F2CB4E']}
+    ], '#3A2260', 2),
+  violet: seed => radialFlower(seed, [
+      {n:5, r0:2, len:12, width:9, color:'#5B3387'}
+    ], '#F0AE1F', 1.5),
+  waterlily: seed => radialFlower(seed, [
+      {n:10, r0:5, len:26, width:10, color:'#FBEFF3'},
+      {n:8, r0:2, len:18, width:8, color:'#F3D2DE'}
+    ], '#F0AE1F', 5, '#B5860B'),
+  gerbera: seed => radialFlower(seed, [
+      {n:16, r0:6, len:26, width:6, color:'#F0592E'}
+    ], '#3A2A1E', 6, '#231A12'),
+  zinnia: seed => radialFlower(seed, [
+      {n:10, r0:5, len:18, width:9, color:'#F0407A'},
+      {n:8, r0:2, len:12, width:7, color:'#F26B1D'}
+    ], '#8B4A12', 3),
+  camellia: seed => radialFlower(seed, [
+      {n:8, r0:5, len:20, width:16, color:'#E5536E'},
+      {n:6, r0:2, len:14, width:12, color:'#C43152'}
+    ], '#F0AE1F', 3),
+  bluebell: seed => clusterFlower(seed, '#5E7CE2', 7, 10, 5, 'bell'),
+  tuberose: seed => clusterFlower(seed, '#FFFDF9', 14, 12, 3.5, 'cross'),
+  morningglory: trumpetMorningGlory
+};
+
+const NAMES = {
+  rose: 'Rose', sunflower: 'Sunflower', orchid: 'Orchid', lily: 'Lily',
+  tulip: 'Tulip', daisy: 'Daisy', peony: 'Peony', carnation: 'Carnation',
+  marigold: 'Marigold', jasmine: 'Jasmine', lotus: 'Lotus', hibiscus: 'Hibiscus',
+  lavender: 'Lavender', daffodil: 'Daffodil', chrysanthemum: 'Chrysanthemum',
+  dahlia: 'Dahlia', petunia: 'Petunia', aster: 'Aster', poppy: 'Poppy',
+  hydrangea: 'Hydrangea', magnolia: 'Magnolia', pansy: 'Pansy', violet: 'Violet',
+  waterlily: 'Water Lily', gerbera: 'Gerbera', zinnia: 'Zinnia', camellia: 'Camellia',
+  bluebell: 'Bluebell', tuberose: 'Tuberose', morningglory: 'Morning Glory'
+};
+
+const KNOWN_TYPES = ['lily','sunflower','orchid','rose'];
+const WILD_TYPES = Object.keys(MARKUP);
+
+// ---------- build the flower palette (order shuffled each visit) ----------
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+const paletteOrder = shuffle(KNOWN_TYPES);
+const flowerList = document.getElementById('flower-list');
+paletteOrder.forEach(type => {
+  const btn = document.createElement('button');
+  btn.className = 'flower-btn';
+  btn.dataset.type = type;
+  btn.innerHTML = `
+    <svg viewBox="-30 -30 60 60"><g id="icon-${type}"></g></svg>
+    <span>
+      <span class="fname">${NAMES[type]}</span>
+      <span class="fcount" data-count="${type}">0 added</span>
+    </span>
+    <span class="plus">+</span>
+  `;
+  flowerList.appendChild(btn);
+});
+
+KNOWN_TYPES.forEach((type, i) => {
+  document.getElementById(`icon-${type}`).innerHTML = MARKUP[type](11 + i*11);
+});
+
+// ---------- state ----------
+let bouquet = [];
+let idCounter = 0;
+let wrapped = false;
+const counts = { lily:0, sunflower:0, orchid:0, rose:0 };
+const goldenAngle = 137.50776 * Math.PI / 180;
+const domeCenter = { x: 300, y: 235 };
+const wrapPoint = { x: 300, y: 440 };
+const maxR = 150;
+
+const svg = document.getElementById('bouquet-svg');
+const emptyNote = document.getElementById('empty-note');
+const clearBtn = document.getElementById('clear-btn');
+const wrapBtn = document.getElementById('wrap-btn');
+const statusPill = document.getElementById('status-pill');
+const stemCountEl = document.getElementById('stem-count');
+
+function addFlower(type){
+  bouquet.push({
+    id: idCounter++, type, seed: Math.floor(Math.random()*1e9),
+    rot: (Math.random()-0.5)*30, scale: 0.85 + Math.random()*0.35
+  });
+  if(counts[type] === undefined) counts[type] = 0;
+  counts[type]++;
+  wrapped = false;
+  render();
+}
+
+function removeFlower(id){
+  const idx = bouquet.findIndex(f => f.id === id);
+  if(idx > -1){
+    counts[bouquet[idx].type]--;
+    bouquet.splice(idx, 1);
+    wrapped = false;
+    render();
+  }
+}
+
+function clearBouquet(){
+  bouquet = [];
+  Object.keys(counts).forEach(k => counts[k] = 0);
+  wrapped = false;
+  render();
+}
+
+function addRandomKnown(){
+  addFlower(KNOWN_TYPES[Math.floor(Math.random()*KNOWN_TYPES.length)]);
+}
+
+function addRandomWild(){
+  addFlower(WILD_TYPES[Math.floor(Math.random()*WILD_TYPES.length)]);
+}
+
+function toggleWrap(){
+  if(bouquet.length === 0) return;
+  wrapped = true;
+  render();
+  showReveal();
+}
+
+function quadPoint(p0, c, p1, t){
+  const x = (1-t)*(1-t)*p0.x + 2*(1-t)*t*c.x + t*t*p1.x;
+  const y = (1-t)*(1-t)*p0.y + 2*(1-t)*t*c.y + t*t*p1.y;
+  return { x, y };
+}
+
+function burstMarkup(seed){
+  const rand = mulberry32(seed);
+  const colors = ['#E9AEBB','#F0AE1F','#B18BCB','#86A279','#FBF6EA','#E2694B'];
+  let s = '';
+  for(let i=0;i<16;i++){
+    const ang = rand()*360;
+    const dist = 40 + rand()*60;
+    const rad = ang*Math.PI/180;
+    const tx = (Math.cos(rad)*dist).toFixed(1);
+    const ty = (Math.sin(rad)*dist - 25).toFixed(1);
+    const c = colors[i % colors.length];
+    const size = 2 + rand()*3;
+    s += `<circle cx="300" cy="440" r="${size.toFixed(1)}" fill="${c}" style="--tx:${tx}px; --ty:${ty}px" class="burst-particle"/>`;
+  }
+  return s;
+}
+
+function render(){
+  const n = bouquet.length;
+  emptyNote.style.display = n === 0 ? 'block' : 'none';
+  clearBtn.disabled = n === 0;
+  wrapBtn.disabled = n === 0;
+  wrapBtn.textContent = wrapped ? 'Wrapped ✓' : 'Wrap it';
+  wrapBtn.classList.toggle('is-wrapped', wrapped);
+  statusPill.textContent = wrapped ? 'Wrapped' : 'Loose';
+  statusPill.classList.toggle('wrapped', wrapped);
+  stemCountEl.textContent = n;
+
+  KNOWN_TYPES.forEach(k => {
+    const el = document.querySelector(`[data-count="${k}"]`);
+    if(el) el.textContent = `${counts[k] || 0} added`;
+  });
+
+  const effMaxR = wrapped ? maxR * 0.92 : maxR;
+
+  const items = bouquet.map((item, i) => {
+    const t = (i+0.5)/Math.max(n,1);
+    const r = effMaxR*Math.sqrt(t);
+    const theta = i*goldenAngle;
+    const x = domeCenter.x + r*Math.cos(theta);
+    const y = domeCenter.y + r*Math.sin(theta)*0.88;
+    return { ...item, x, y };
+  }).sort((a,b) => a.y - b.y);
+
+  let stems = '';
+  let leaves = '';
+  items.forEach((it, i) => {
+    const ctrl = { x: wrapPoint.x, y: it.y };
+    stems += `<path d="M ${wrapPoint.x} ${wrapPoint.y} Q ${ctrl.x} ${ctrl.y} ${it.x.toFixed(1)} ${it.y.toFixed(1)}" fill="none" stroke="var(--sage)" stroke-width="2" opacity="0.85" stroke-linecap="round"/>`;
+    if(i % 2 === 0){
+      const mid = quadPoint(wrapPoint, ctrl, it, 0.55);
+      const leafAng = 40 + (i % 4 === 0 ? 0 : 180);
+      if(i % 4 === 0){
+        leaves += `<g transform="translate(${mid.x.toFixed(1)},${mid.y.toFixed(1)}) rotate(${leafAng})"><path d="${petalPath(0,20,9)}" fill="var(--eucalyptus)" opacity="0.92"/><line x1="0" y1="-2" x2="0" y2="-18" stroke="var(--eucalyptus-dark)" stroke-width="0.6" opacity="0.5"/></g>`;
+      } else {
+        leaves += `<path d="${petalPath(0,14,7)}" transform="translate(${mid.x.toFixed(1)},${mid.y.toFixed(1)}) rotate(${leafAng})" fill="var(--sage-light)" opacity="0.9"/>`;
+      }
+    }
+  });
+
+  let flowers = '';
+  items.forEach(it => {
+    flowers += `<g class="flower-g" data-flower-id="${it.id}" filter="url(#inlineShadow)" transform="translate(${it.x.toFixed(1)},${it.y.toFixed(1)}) rotate(${it.rot.toFixed(1)}) scale(${it.scale.toFixed(2)})">
+      <title>${NAMES[it.type]} — click to remove</title>
+      ${MARKUP[it.type](it.seed)}
+    </g>`;
+  });
+
+  const looseGroupClass = wrapped ? 'settle-pop' : '';
+  let wrapLayer = '';
+  if(wrapped){
+    const burstSeed = Math.floor(Math.random()*1e9);
+    const wrand = mulberry32(burstSeed);
+    wrapLayer = `
+      <defs>
+        <linearGradient id="kraftGrad" x1="0" y1="0" x2="1" y2="0.15">
+          <stop offset="0%" stop-color="#DEB985"/>
+          <stop offset="45%" stop-color="#C79A5E"/>
+          <stop offset="100%" stop-color="#9C7038"/>
+        </linearGradient>
+        <linearGradient id="kraftGrad2" x1="0" y1="0" x2="1" y2="0.15">
+          <stop offset="0%" stop-color="#C79A5E"/>
+          <stop offset="100%" stop-color="#8A6234"/>
+        </linearGradient>
+        <radialGradient id="shadowGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#000" stop-opacity="0.28"/>
+          <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <g class="wrap-pop">
+        <ellipse cx="300" cy="518" rx="150" ry="22" fill="url(#shadowGrad)"/>
+
+        <!-- back sheet of paper (slightly offset, deeper tone) -->
+        <path d="M 250 415 Q 246 480 215 552 Q 300 578 388 552 Q 358 480 354 415 Q 300 445 250 415 Z" fill="url(#kraftGrad2)" opacity="0.9"/>
+
+        <!-- main kraft cone -->
+        <path d="M 226 428 Q 220 470 224 505 Q 205 540 196 558 Q 300 585 404 558 Q 395 540 376 505 Q 380 470 374 428 Q 300 458 226 428 Z" fill="url(#kraftGrad)"/>
+
+        <!-- fold creases -->
+        <path d="M 250 432 Q 238 490 224 552" fill="none" stroke="#7A5A2E" stroke-width="1.2" opacity="0.3"/>
+        <path d="M 300 448 Q 300 505 296 572" fill="none" stroke="#7A5A2E" stroke-width="1.2" opacity="0.25"/>
+        <path d="M 348 432 Q 360 490 372 552" fill="none" stroke="#7A5A2E" stroke-width="1.2" opacity="0.3"/>
+        <path d="M 268 435 Q 255 480 245 520" fill="none" stroke="#F0DDB0" stroke-width="2" opacity="0.35" stroke-linecap="round"/>
+
+        <!-- torn/deckled top rim -->
+        <path d="M 226 428 Q 240 420 254 429 Q 268 420 282 429 Q 296 420 310 429 Q 324 420 338 429 Q 352 420 374 428" fill="none" stroke="#9C7038" stroke-width="2" opacity="0.5" stroke-linecap="round"/>
+
+        <!-- tissue paper peeking from inside the wrap -->
+        <path d="M 258 440 Q 250 415 262 396 Q 272 412 278 398 Q 286 416 296 400 Q 300 418 306 400 Q 314 416 322 398 Q 330 412 340 396 Q 350 415 342 440 Q 300 452 258 440 Z" fill="var(--cream-petal)" opacity="0.92"/>
+        <path d="M 268 438 Q 262 420 270 405 Q 280 418 288 406 Q 296 420 304 406 Q 312 418 320 405 Q 328 420 332 438 Q 300 448 268 438 Z" fill="var(--rose)" opacity="0.5"/>
+
+        <!-- ribbon bow -->
+        <path d="M300,434 C272,412 250,417 244,436 C240,452 262,462 300,447 C338,462 360,452 356,436 C350,417 328,412 300,434 Z" fill="var(--ribbon)"/>
+        <path d="M300,434 C272,412 250,417 244,436 C240,452 262,462 300,447 C338,462 360,452 356,436 C350,417 328,412 300,434 Z" fill="none" stroke="var(--ribbon-dark)" stroke-width="0.8" opacity="0.6"/>
+        <circle cx="300" cy="438" r="9" fill="var(--ribbon)" stroke="var(--ribbon-dark)" stroke-width="1"/>
+        <path d="M291,443 L276,512 L292,502 L300,514 L308,502 L324,512 L309,443 Z" fill="var(--ribbon)"/>
+        <path d="M291,443 L276,512 L292,502 L300,514 L308,502 L324,512 L309,443 Z" fill="none" stroke="var(--ribbon-dark)" stroke-width="0.6" opacity="0.5"/>
+
+        <circle cx="300" cy="440" r="10" fill="none" stroke="var(--kraft-dark)" stroke-width="3" class="pop-ring"/>
+      </g>
+      <g>${burstMarkup(burstSeed)}</g>
+    `;
+  }
+
+  svg.innerHTML = `<defs><filter id="inlineShadow" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0" dy="1.6" stdDeviation="1.3" flood-color="#000" flood-opacity="0.16"/></filter></defs><g class="${looseGroupClass}">${stems}${leaves}${flowers}</g>${wrapLayer}`;
+}
+
+svg.addEventListener('click', e => {
+  const g = e.target.closest('[data-flower-id]');
+  if(g) removeFlower(Number(g.dataset.flowerId));
+});
+
+flowerList.addEventListener('click', e => {
+  const btn = e.target.closest('.flower-btn');
+  if(btn) addFlower(btn.dataset.type);
+});
+
+document.getElementById('random-known-btn').addEventListener('click', addRandomKnown);
+document.getElementById('random-wild-btn').addEventListener('click', addRandomWild);
+clearBtn.addEventListener('click', clearBouquet);
+wrapBtn.addEventListener('click', toggleWrap);
+
+// ---------- realistic reveal popup ----------
+const revealBackdrop = document.getElementById('reveal-backdrop');
+const revealSvg = document.getElementById('reveal-svg');
+const revealCloseBtn = document.getElementById('reveal-close');
+const revealAnotherBtn = document.getElementById('reveal-another');
+const revealDoneBtn = document.getElementById('reveal-done');
+const revealSub = document.getElementById('reveal-sub');
+const confettiLayer = document.getElementById('confetti-layer');
+
+const CONFETTI_FALLBACK = ['#E9AEBB','#F0AE1F','#B18BCB','#86A279','#E2694B','#F3C6D3'];
+const ACCENT_COLOR = {
+  rose:'#E9AEBB', sunflower:'#F0AE1F', orchid:'#B18BCB', lily:'#EFE7D2',
+  tulip:'#E2694B', daisy:'#F3EEDD', peony:'#F3C6D3', carnation:'#E58FC0',
+  marigold:'#F2941C', jasmine:'#F3EEDD', lotus:'#F6C9D6', hibiscus:'#E23B4E',
+  lavender:'#8672B0', daffodil:'#FDE9A8', chrysanthemum:'#F0D9A8', dahlia:'#D6436E',
+  petunia:'#9B5DE5', aster:'#8E7CC3', poppy:'#E2434B', hydrangea:'#8FB6E0',
+  magnolia:'#EBD9D9', pansy:'#8B5FC7', violet:'#5B3387', waterlily:'#F3D2DE',
+  gerbera:'#F0592E', zinnia:'#F0407A', camellia:'#E5536E', bluebell:'#5E7CE2',
+  tuberose:'#F3EEDD', morningglory:'#8F82E0'
+};
+
+function pluralizeName(name, count){
+  const lower = name.toLowerCase();
+  if(count <= 1) return lower;
+  if(/[^aeiou]y$/.test(lower)) return lower.slice(0, -1) + 'ies';
+  return lower + 's';
+}
+
+function launchConfetti(types){
+  confettiLayer.innerHTML = '';
+  const palette = types.length ? types.map(t => ACCENT_COLOR[t] || CONFETTI_FALLBACK[0]) : CONFETTI_FALLBACK;
+  for(let i=0;i<28;i++){
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    const size = 5 + Math.random()*7;
+    el.style.left = (Math.random()*100) + '%';
+    el.style.width = size + 'px';
+    el.style.height = (size*0.75) + 'px';
+    el.style.background = palette[i % palette.length];
+    el.style.animationDuration = (1.5 + Math.random()*1.3) + 's';
+    el.style.animationDelay = (Math.random()*0.5) + 's';
+    el.style.setProperty('--drift', ((Math.random()-0.5)*130).toFixed(0) + 'px');
+    el.style.setProperty('--spin', (160 + Math.random()*260).toFixed(0) + 'deg');
+    confettiLayer.appendChild(el);
+  }
+}
+
+function buildRevealSVG(arr){
+  const rDome = { x: 320, y: 266 };
+  const rWrap = { x: 320, y: 468 };
+  const rMaxR = 176;
+  const n = arr.length;
+  const items = arr.map((item, i) => {
+    const t = (i+0.5)/Math.max(n,1);
+    const r = rMaxR*Math.sqrt(t);
+    const theta = i*goldenAngle;
+    const x = rDome.x + r*Math.cos(theta);
+    const y = rDome.y + r*Math.sin(theta)*0.88;
+    return { ...item, x, y };
+  }).sort((a,b) => a.y - b.y);
+
+  let stems = '', leaves = '';
+  items.forEach((it, i) => {
+    const ctrl = { x: rWrap.x, y: it.y };
+    stems += `<path d="M ${rWrap.x} ${rWrap.y} Q ${ctrl.x} ${ctrl.y} ${it.x.toFixed(1)} ${it.y.toFixed(1)}" fill="none" stroke="var(--sage)" stroke-width="2.4" opacity="0.85" stroke-linecap="round"/>`;
+    if(i % 3 === 0){
+      const mid = quadPoint(rWrap, ctrl, it, 0.55);
+      const leafAng = 40 + (i % 6 === 0 ? 0 : 180);
+      if(i % 6 === 0){
+        leaves += `<g transform="translate(${mid.x.toFixed(1)},${mid.y.toFixed(1)}) rotate(${leafAng})"><path d="${petalPath(0,26,11)}" fill="var(--eucalyptus)" opacity="0.92"/><line x1="0" y1="-2" x2="0" y2="-23" stroke="var(--eucalyptus-dark)" stroke-width="0.7" opacity="0.5"/></g>`;
+      } else {
+        leaves += `<path d="${petalPath(0,17,8.5)}" transform="translate(${mid.x.toFixed(1)},${mid.y.toFixed(1)}) rotate(${leafAng})" fill="var(--sage-light)" opacity="0.9"/>`;
+      }
+    }
+  });
+
+  let flowers = '';
+  items.forEach(it => {
+    flowers += `<g filter="url(#revealShadow)" transform="translate(${it.x.toFixed(1)},${it.y.toFixed(1)}) rotate(${it.rot.toFixed(1)}) scale(${(it.scale*1.1).toFixed(2)})">
+      ${MARKUP[it.type](it.seed)}
+    </g>`;
+  });
+
+  return `
+    <defs>
+      <linearGradient id="rKraft" x1="0" y1="0" x2="1" y2="0.2">
+        <stop offset="0%" stop-color="#F8E6EC"/>
+        <stop offset="45%" stop-color="var(--paper-blush)"/>
+        <stop offset="100%" stop-color="var(--paper-lilac-dark)"/>
+      </linearGradient>
+      <linearGradient id="rKraft2" x1="0" y1="0" x2="1" y2="0.2">
+        <stop offset="0%" stop-color="var(--paper-lilac)"/>
+        <stop offset="100%" stop-color="var(--paper-lilac-dark)"/>
+      </linearGradient>
+      <radialGradient id="rShadow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#000" stop-opacity="0.32"/>
+        <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="rGlow" cx="38%" cy="28%" r="60%">
+        <stop offset="0%" stop-color="#FFFDF6" stop-opacity="0.55"/>
+        <stop offset="100%" stop-color="#FFFDF6" stop-opacity="0"/>
+      </radialGradient>
+      <filter id="revealShadow" x="-60%" y="-60%" width="220%" height="220%">
+        <feDropShadow dx="0" dy="3" stdDeviation="2.6" flood-color="#000" flood-opacity="0.22"/>
+      </filter>
+    </defs>
+
+    <ellipse cx="320" cy="642" rx="182" ry="26" fill="url(#rShadow)"/>
+
+    <path d="M 264 452 Q 258 512 226 588 Q 320 618 414 588 Q 382 512 376 452 Q 320 480 264 452 Z" fill="url(#rKraft2)" opacity="0.92"/>
+    <path d="M 240 462 Q 234 508 238 548 Q 217 588 208 610 Q 320 640 432 610 Q 423 588 402 548 Q 406 508 400 462 Q 320 494 240 462 Z" fill="url(#rKraft)"/>
+
+    <path d="M 264 466 Q 250 528 234 596" fill="none" stroke="var(--paper-lilac-dark)" stroke-width="1.3" opacity="0.4"/>
+    <path d="M 320 484 Q 320 546 316 622" fill="none" stroke="var(--paper-lilac-dark)" stroke-width="1.3" opacity="0.32"/>
+    <path d="M 376 466 Q 390 528 404 596" fill="none" stroke="var(--paper-lilac-dark)" stroke-width="1.3" opacity="0.4"/>
+    <path d="M 282 470 Q 268 518 256 562" fill="none" stroke="#FFFBFC" stroke-width="2.2" opacity="0.45" stroke-linecap="round"/>
+
+    <path d="M 240 462 Q 256 452 272 462 Q 288 452 304 462 Q 320 452 336 462 Q 352 452 368 462 Q 384 452 400 462" fill="none" stroke="var(--paper-lilac-dark)" stroke-width="2.2" opacity="0.55" stroke-linecap="round"/>
+
+    <path d="M 274 476 Q 264 446 278 424 Q 290 442 298 426 Q 306 446 318 428 Q 322 448 330 428 Q 340 446 350 426 Q 360 442 370 424 Q 382 446 372 476 Q 320 490 274 476 Z" fill="var(--cream-petal)" opacity="0.94"/>
+    <path d="M 286 472 Q 278 452 288 434 Q 298 448 308 436 Q 318 452 328 436 Q 338 448 348 434 Q 356 452 362 472 Q 320 484 286 472 Z" fill="var(--rose)" opacity="0.5"/>
+
+    <path d="M320,468 C286,442 258,448 250,470 C245,489 272,501 320,483 C368,501 395,489 390,470 C382,448 354,442 320,468 Z" fill="var(--ribbon)"/>
+    <path d="M320,468 C286,442 258,448 250,470 C245,489 272,501 320,483 C368,501 395,489 390,470 C382,448 354,442 320,468 Z" fill="none" stroke="var(--ribbon-dark)" stroke-width="0.9" opacity="0.6"/>
+    <path d="M300,452 C280,438 264,442 258,458" fill="none" stroke="var(--ribbon-light)" stroke-width="2.4" opacity="0.5" stroke-linecap="round"/>
+    <path d="M340,452 C360,438 376,442 382,458" fill="none" stroke="var(--ribbon-light)" stroke-width="2.4" opacity="0.5" stroke-linecap="round"/>
+    <circle cx="320" cy="472" r="10.5" fill="var(--ribbon)" stroke="var(--ribbon-dark)" stroke-width="1.1"/>
+    <path d="M309,478 L291,558 L310,546 L320,560 L330,546 L349,558 L331,478 Z" fill="var(--ribbon)"/>
+    <path d="M309,478 L291,558 L310,546 L320,560 L330,546 L349,558 L331,478 Z" fill="none" stroke="var(--ribbon-dark)" stroke-width="0.7" opacity="0.5"/>
+    <path d="M313,483 L303,549" stroke="var(--ribbon-light)" stroke-width="1.6" opacity="0.45" stroke-linecap="round" fill="none"/>
+    <path d="M327,483 L337,549" stroke="var(--ribbon-light)" stroke-width="1.6" opacity="0.45" stroke-linecap="round" fill="none"/>
+
+    <g>${stems}${leaves}</g>
+    <g>${flowers}</g>
+    <ellipse cx="230" cy="160" rx="220" ry="200" fill="url(#rGlow)"/>
+  `;
+}
+
+function showReveal(){
+  if(bouquet.length === 0) return;
+  revealSvg.innerHTML = buildRevealSVG(bouquet);
+  const typesPresent = [...new Set(bouquet.map(f => f.type))];
+  const summary = typesPresent.map(t => {
+    const c = bouquet.filter(f => f.type === t).length;
+    return `${c} ${pluralizeName(NAMES[t], c)}`;
+  }).join(', ');
+  revealSub.textContent = `${bouquet.length} ${bouquet.length === 1 ? 'stem' : 'stems'}, hand-tied in kraft paper — ${summary}.`;
+  revealBackdrop.classList.add('open');
+  launchConfetti(typesPresent);
+}
+
+function closeReveal(){
+  revealBackdrop.classList.remove('open');
+}
+
+revealCloseBtn.addEventListener('click', closeReveal);
+revealBackdrop.addEventListener('click', e => { if(e.target === revealBackdrop) closeReveal(); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeReveal(); });
+revealDoneBtn.addEventListener('click', closeReveal);
+revealAnotherBtn.addEventListener('click', () => { closeReveal(); clearBouquet(); });
+
+render();
+</script>
+
+</body>
+</html>
